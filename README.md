@@ -9,7 +9,7 @@ A RAG (Retrieval-Augmented Generation) based chatbot that answers questions abou
 - **LangChain** — RAG pipeline
 - **Qdrant** — Vector database for storing chunks
 - **HuggingFace Embeddings** — `sentence-transformers/all-MiniLM-L6-v2`
-- **Groq (LLaMA 3.1)** — LLM for generating answers
+-  (LLaMA 3.1)** — LLM for generating answers(any llama model for localy run on system)
 - **FastAPI** — Backend API server
 - **HTML/CSS/JS** — Static frontend
 
@@ -44,9 +44,7 @@ pip install -r requirements.txt
 ### 3. Setup `.env` file
 Create a `.env` file in the root directory:
 ```
-API_KEY=your_groq_api_key_here
-```
-Get your free Groq API key at [console.groq.com](https://console.groq.com)
+define you model and if using any key for the incase using pine database and api key og nay chatbot model
 
 ### 4. Start Qdrant (Docker)
 ```bash
@@ -75,7 +73,7 @@ Open `index.html` in your browser — done! 🎉
 1. Constitution PDFs are split into chunks and stored in Qdrant
 2. User asks a question via the frontend
 3. Relevant chunks are retrieved using semantic search
-4. Groq's LLaMA 3.1 generates an answer using only those chunks
+4.  LLaMA 3.1 generates an answer using only those chunks
 5. Answer is displayed in the chat UI
 
 ---
@@ -84,7 +82,7 @@ Open `index.html` in your browser — done! 🎉
 
 | Variable | Description |
 |----------|-------------|
-| `API_KEY` | Groq API Key |
+| `API_KEY` |  API Key |
 
 ---
 

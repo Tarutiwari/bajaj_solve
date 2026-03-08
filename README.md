@@ -88,5 +88,5 @@ Open `index.html` in your browser — done! 🎉
 
 ## 📌 Notes
 
-- Constitution PDFs are not included in this repo due to size
+- Constitution PDFs are  included in this repo due to size
 - Make sure Qdrant is running before starting the server

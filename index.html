@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Samvidhan AI — Indian Constitution Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Noto+Serif+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --saffron: #FF9933;
+      --saffron-dark: #e07a1a;
+      --white: #FAF7F2;
+      --navy: #0C1A3B;
+      --navy-light: #162550;
+      --green: #138808;
+      --gold: #C8922A;
+      --ashoka: #4169A6;
+      --text-muted: #8A8070;
+      --border: rgba(200,146,42,0.2);
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--navy);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Background texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 0%, rgba(255,153,51,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 90% 100%, rgba(19,136,8,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(65,105,166,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* HEADER */
+    header {
+      padding: 22px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .logo-wheel {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      animation: spinSlow 20s linear infinite;
+    }
+
+    .header-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .header-text h1 span {
+      color: var(--saffron);
+    }
+
+    .header-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .header-badge {
+      margin-left: auto;
+      font-size: 0.68rem;
+      background: rgba(255,153,51,0.12);
+      border: 1px solid rgba(255,153,51,0.3);
+      color: var(--saffron);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    /* CHAT AREA */
+    .chat-area {
+      overflow-y: auto;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-area::-webkit-scrollbar { width: 4px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* Welcome state */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      gap: 20px;
+      animation: fadeUp 0.8s ease both 0.2s;
+    }
+
+    .welcome-ashoka {
+      width: 80px;
+      height: 80px;
+      opacity: 0.15;
+    }
+
+    .welcome h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      color: var(--white);
+      line-height: 1.3;
+    }
+
+    .welcome h2 em {
+      font-style: italic;
+      color: var(--saffron);
+    }
+
+    .welcome p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 420px;
+      line-height: 1.7;
+    }
+
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 560px;
+    }
+
+    .chip {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: rgba(250,247,242,0.75);
+      font-size: 0.78rem;
+      padding: 7px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .chip:hover {
+      background: rgba(255,153,51,0.1);
+      border-color: rgba(255,153,51,0.5);
+      color: var(--saffron);
+      transform: translateY(-1px);
+    }
+
+    /* Messages */
+    .message {
+      display: flex;
+      gap: 12px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .message.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .avatar.ai {
+      background: linear-gradient(135deg, var(--saffron) 0%, var(--gold) 100%);
+      color: var(--navy);
+    }
+
+    .avatar.user-av {
+      background: rgba(65,105,166,0.3);
+      border: 1px solid rgba(65,105,166,0.5);
+      color: var(--ashoka);
+    }
+
+    .bubble {
+      max-width: 78%;
+      padding: 13px 18px;
+      border-radius: 18px;
+      font-size: 0.9rem;
+      line-height: 1.75;
+    }
+
+    .message.ai .bubble {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-top-left-radius: 4px;
+      color: var(--white);
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, rgba(255,153,51,0.18) 0%, rgba(200,146,42,0.12) 100%);
+      border: 1px solid rgba(255,153,51,0.25);
+      border-top-right-radius: 4px;
+      color: var(--white);
+    }
+
+    /* Typing indicator */
+    .typing-bubble {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 18px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      background: var(--saffron);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+      opacity: 0.7;
+    }
+
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* INPUT AREA */
+    .input-area {
+      padding: 16px 0 20px;
+      border-top: 1px solid var(--border);
+      animation: fadeUp 0.6s ease both 0.4s;
+    }
+
+    .tricolor-bar {
+      height: 2px;
+      background: linear-gradient(to right, var(--saffron) 33.3%, white 33.3%, white 66.6%, var(--green) 66.6%);
+      border-radius: 2px;
+      margin-bottom: 14px;
+      opacity: 0.6;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+      min-height: 48px;
+      max-height: 120px;
+      line-height: 1.5;
+      transition: border-color 0.2s;
+    }
+
+    textarea::placeholder { color: var(--text-muted); }
+    textarea:focus { border-color: rgba(255,153,51,0.5); }
+
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--saffron) 0%, var(--saffron-dark) 100%);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,153,51,0.35); }
+    .send-btn:active { transform: translateY(0); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .send-btn svg { width: 20px; height: 20px; fill: var(--navy); }
+
+    .input-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Animations */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Error state */
+    .error-bubble {
+      background: rgba(220,50,50,0.1) !important;
+      border-color: rgba(220,50,50,0.3) !important;
+      color: #ff8080 !important;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <svg class="logo-wheel" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" stroke="#4169A6" stroke-width="4"/>
+      <circle cx="50" cy="50" r="8" fill="#4169A6"/>
+      <!-- 24 spokes -->
+      <g stroke="#4169A6" stroke-width="2.5">
+        <line x1="50" y1="8" x2="50" y2="20"/>
+        <line x1="50" y1="80" x2="50" y2="92"/>
+        <line x1="8" y1="50" x2="20" y2="50"/>
+        <line x1="80" y1="50" x2="92" y2="50"/>
+        <line x1="19.6" y1="19.6" x2="27.9" y2="27.9"/>
+        <line x1="72.1" y1="72.1" x2="80.4" y2="80.4"/>
+        <line x1="80.4" y1="19.6" x2="72.1" y2="27.9"/>
+        <line x1="27.9" y1="72.1" x2="19.6" y2="80.4"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(15 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(30 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(45 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(60 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(75 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(90 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(105 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(120 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(135 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(150 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(165 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(180 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(195 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(210 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(225 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(240 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(255 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(270 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(285 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(300 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(315 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(330 50 50)"/>
+        <line x1="50" y1="8" x2="50" y2="20" transform="rotate(345 50 50)"/>
+      </g>
+    </svg>
+    <div class="header-text">
+      <h1>Samvidhan <span>AI</span></h1>
+      <p>Indian Constitution Assistant</p>
+    </div>
+    <span class="header-badge">⚖️ RAG Powered</span>
+  </header>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chatArea">
+    <div class="welcome" id="welcome">
+      <svg class="welcome-ashoka" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="46" stroke="#FAF7F2" stroke-width="3"/>
+        <circle cx="50" cy="50" r="7" fill="#FAF7F2"/>
+        <g stroke="#FAF7F2" stroke-width="2">
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(0 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(15 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(30 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(45 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(60 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(75 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(90 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(105 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(120 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(135 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(150 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(165 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(180 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(195 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(210 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(225 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(240 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(255 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(270 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(285 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(300 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(315 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(330 50 50)"/>
+          <line x1="50" y1="8" x2="50" y2="20" transform="rotate(345 50 50)"/>
+        </g>
+      </svg>
+      <h2>Ask anything about the<br/><em>Indian Constitution</em></h2>
+      <p>Powered by RAG — your questions are answered using the actual text of the Indian Constitution.</p>
+      <div class="suggestion-chips">
+        <button class="chip" onclick="askSuggestion(this)">What are Fundamental Rights?</button>
+        <button class="chip" onclick="askSuggestion(this)">Article 21 personal liberty</button>
+        <button class="chip" onclick="askSuggestion(this)">What is the Preamble?</button>
+        <button class="chip" onclick="askSuggestion(this)">Directive Principles of State Policy</button>
+        <button class="chip" onclick="askSuggestion(this)">Right to equality Article 14</button>
+        <button class="chip" onclick="askSuggestion(this)">What does Article 19 say?</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT AREA -->
+  <div class="input-area">
+    <div class="tricolor-bar"></div>
+    <div class="input-row">
+      <textarea
+        id="queryInput"
+        placeholder="Ask about any Article, Schedule, or provision..."
+        rows="1"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <p class="input-hint">Press Enter to send · Shift+Enter for new line</p>
+  </div>
+
+</div>
+
+<script>
+  const BACKEND_URL = "http://localhost:8000/ask"; // Change this when deploying
+
+  const chatArea = document.getElementById('chatArea');
+  const queryInput = document.getElementById('queryInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const welcome = document.getElementById('welcome');
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function askSuggestion(btn) {
+    queryInput.value = btn.textContent;
+    sendMessage();
+  }
+
+  function addMessage(text, role, isError = false) {
+    // Hide welcome screen
+    if (welcome) welcome.style.display = 'none';
+
+    const msg = document.createElement('div');
+    msg.className = `message ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${role === 'ai' ? 'ai' : 'user-av'}`;
+    avatar.textContent = role === 'ai' ? '⚖' : 'You';
+
+    const bubble = document.createElement('div');
+    bubble.className = `bubble${isError ? ' error-bubble' : ''}`;
+    bubble.textContent = text;
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return bubble;
+  }
+
+  function addTyping() {
+    if (welcome) welcome.style.display = 'none';
+    const msg = document.createElement('div');
+    msg.className = 'message ai';
+    msg.id = 'typingMsg';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar ai';
+    avatar.textContent = '⚖';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble typing-bubble';
+    bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chatArea.appendChild(msg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typingMsg');
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    const query = queryInput.value.trim();
+    if (!query) return;
+
+    // Add user message
+    addMessage(query, 'user');
+    queryInput.value = '';
+    queryInput.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    // Show typing
+    addTyping();
+
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+
+      removeTyping();
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+      const data = await response.json();
+      addMessage(data.answer || data.result || JSON.stringify(data), 'ai');
+
+    } catch (err) {
+      removeTyping();
+      addMessage(`⚠️ Could not connect to backend. Make sure your Python server is running at ${BACKEND_URL}`, 'ai', true);
+    }
+
+    sendBtn.disabled = false;
+    queryInput.focus();
+  }
+</script>
+</body>
+</html>
